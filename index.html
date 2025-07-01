@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern To-Do List App</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f5f7fa;
+            transition: background-color 0.3s, color 0.3s;
+            overflow: hidden; /* Prevent scrollbars from appearing */
+        }
+
+        .dark-mode {
+            background-color: #1a1a2e;
+            color: #ff0a0a;
+        }
+
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            animation: float linear infinite, blink 5s infinite alternate;
+            box-shadow: 0 0 8px 2px currentColor;
+            opacity: 0;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 0.1; }
+            50% { opacity: 0.8; }
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0) translateX(0);
+            }
+            100% {
+                transform: translateY(-120vh) translateX(20px);
+            }
+        }
+
+        .bubble:nth-child(1) {
+            width: 50px;
+            height: 50px;
+            left: 10%;
+            animation-duration: 10s;
+            animation-delay: 0s;
+        }
+
+        .bubble:nth-child(2) {
+            width: 30px;
+            height: 30px;
+            left: 20%;
+            animation-duration: 8s;
+            animation-delay: 2s;
+        }
+
+        .bubble:nth-child(3) {
+            width: 40px;
+            height: 40px;
+            left: 30%;
+            animation-duration: 12s;
+            animation-delay: 4s;
+        }
+
+        .bubble:nth-child(4) {
+            width: 60px;
+            height: 60px;
+            left: 40%;
+            animation-duration: 9s;
+            animation-delay: 1s;
+        }
+
+        .bubble:nth-child(5) {
+            width: 20px;
+            height: 20px;
+            left: 50%;
+            animation-duration: 11s;
+            animation-delay: 3s;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bubbles-container fixed top-0 left-0 w-full h-full pointer-events-none"></div>
+
+    <div class="container mx-auto px-4 py-8 relative z-10"> <!-- Added z-index for content -->
+        <h1 class="text-3xl font-bold text-center mb-6">To-Do List</h1>
+        <div class="flex justify-center mb-4">
+            <input type="text" id="taskInput" class="border border-gray-300 p-2 rounded-l-md w-1/2" placeholder="Add a new task...">
+            <button id="addTaskBtn" class="bg-blue-500 text-white p-2 rounded-r-md">Add Task</button>
+        </div>
+        <div class="flex justify-center mb-4">
+            <select id="filterTasks" class="border border-gray-300 p-2 rounded-md">
+                <option value="all">All Tasks</option>
+                <option value="completed">Completed</option>
+                <option value="pending">Pending</option>
+            </select>
+            <button id="toggleTheme" class="ml-4 p-2 bg-gray-300 rounded-md">Change Mode</button>
+        </div>
+        <ul id="taskList" class="list-none">
+            <!-- Task items will be dynamically added here -->
+        </ul>
+    </div>
+
+    <script>
+        const taskInput = document.getElementById('taskInput');
+        const addTaskBtn = document.getElementById('addTaskBtn');
+        const taskList = document.getElementById('taskList');
+        const filterTasks = document.getElementById('filterTasks');
+        const toggleTheme = document.getElementById('toggleTheme');
+        let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        let isDarkMode = false;
+
+        function renderTasks(filter = 'all') {
+            taskList.innerHTML = '';
+            const filteredTasks = tasks.filter(task => {
+                if (filter === 'completed') return task.completed;
+                if (filter === 'pending') return !task.completed;
+                return true;
+            });
+
+            filteredTasks.forEach((task, index) => {
+                const li = document.createElement('li');
+                li.className = 'flex justify-between items-center bg-white dark:bg-gray-700 p-4 rounded-md shadow-md mb-2 transition-all duration-300';
+                li.innerHTML = `
+                    <span class="${task.completed ? 'line-through text-gray-500 dark:text-gray-300' : 'dark:text-white'}">${task.text} <small class="text-gray-400 dark:text-gray-400">(${task.timestamp})</small></span>
+                    <div>
+                        <button class="text-green-500 mr-2" onclick="toggleTask(${index})"><i class="fas fa-check"></i></button>
+                        <button class="text-blue-500 mr-2" onclick="editTask(${index})"><i class="fas fa-edit"></i></button>
+                        <button class="text-red-500" onclick="deleteTask(${index})"><i class="fas fa-trash"></i></button>
+                    </div>
+                `;
+                taskList.appendChild(li);
+            });
+        }
+
+        function addTask() {
+            const taskText = taskInput.value.trim();
+            if (taskText) {
+                const newTask = {
+                    text: taskText,
+                    completed: false,
+                    timestamp: new Date().toLocaleString()
+                };
+                tasks.push(newTask);
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+                taskInput.value = '';
+                renderTasks(filterTasks.value);
+            }
+        }
+
+        function toggleTask(index) {
+            tasks[index].completed = !tasks[index].completed;
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            renderTasks(filterTasks.value);
+        }
+
+        function editTask(index) {
+            const newTaskText = prompt('Edit Task:', tasks[index].text);
+            if (newTaskText) {
+                tasks[index].text = newTaskText;
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+                renderTasks(filterTasks.value);
+            }
+        }
+
+        function deleteTask(index) {
+            tasks.splice(index, 1);
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            renderTasks(filterTasks.value);
+        }
+
+        addTaskBtn.addEventListener('click', addTask);
+        filterTasks.addEventListener('change', () => renderTasks(filterTasks.value));
+
+        toggleTheme.addEventListener('click', () => {
+            isDarkMode = !isDarkMode;
+            document.body.classList.toggle('dark-mode', isDarkMode);
+            toggleTheme.classList.toggle('bg-gray-300', !isDarkMode);
+            toggleTheme.classList.toggle('bg-gray-800', isDarkMode);
+            toggleTheme.classList.toggle('text-white', isDarkMode);
+            toggleTheme.classList.toggle('text-gray-800', !isDarkMode);
+        });
+
+        // Create stars
+        const bubblesContainer = document.querySelector('.bubbles-container');
+        const colors = ['#ff0000', '#ffff00', '#00ff00', '#00ffff', '#ff00ff', '#ffffff'];
+        
+        for (let i = 0; i < 150; i++) {
+            const star = document.createElement('div');
+            star.classList.add('bubble');
+            
+            const size = Math.random() * 4 + 1;
+            const posX = Math.random() * 100;
+            const duration = Math.random() * 15 + 5;
+            const delay = Math.random() * 10;
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            
+            star.style.width = `${size}px`;
+            star.style.height = `${size}px`;
+            star.style.left = `${posX}%`;
+            star.style.bottom = `${Math.random() * 100}%`;
+            star.style.animationDuration = `${duration}s`;
+            star.style.animationDelay = `${delay}s`;
+            star.style.color = color;
+            
+            bubblesContainer.appendChild(star);
+        }
+
+        // Initial render
+        renderTasks();
+    </script>
+</body>
+
+</html>
