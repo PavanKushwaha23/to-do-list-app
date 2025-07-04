@@ -57,7 +57,9 @@ Users need a lightweight, intuitive task manager that works offline and adapts t
 
 ## 🖼️ UI Screenshots
 
-> (You can add screenshots or a GIF demo here showing task creation, editing, filtering, etc.)
+> ![Screenshot 2025-07-05 002043](https://github.com/user-attachments/assets/b1b3cd61-e8e5-4e14-94a1-d36f74c5a283)
+![Screenshot 2025-07-05 002043](https://github.com/user-attachments/assets/79a664e5-a52c-4ab2-bfab-a7b9acdfa18a)
+
 
 ---
 🔧 Future Enhancements
